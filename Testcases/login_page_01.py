@@ -1,4 +1,7 @@
+from telnetlib import EC
+
 import psycopg2 as pg
+import pytest
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -8,60 +11,74 @@ from selenium.webdriver.common.by import By
 import time
 
 
+from selenium.webdriver.support.wait import WebDriverWait
+
+from PageObjes.dyno_pom import Loginpage
 class TestLogin:
 
     def test_Login(self):
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option("detach", True)
-        serv_obj = Service("E:\Company Software\Chrome  Webdriver - 110 version\chromedriver.exe")
-        driver = webdriver.Chrome(options=options, service=serv_obj)
-        driver.get("https://d.dynoapp.in/#/login/login")
-        driver.maximize_window()
-        time.sleep(2)
-        # ***************************************************************************
+        path= Loginpage(self)
+        self.driver = path.get_driver()
+        self.driver.implicitly_wait(30)
+
+        self.driver.get(Loginpage.URL)
+        self.driver.find_element(By.XPATH, Loginpage.textbox_mailid_xpath).send_keys(Loginpage.email)
+        shadow = self.driver.find_element(By.CSS_SELECTOR, Loginpage.next)
+        shadow.click()
+
+        port = '5432'
+        host = '34.100.216.73'
+        user = "postgres"
+        password = "t3djo7b0jfd9J3JL"
+        database = "devdyno"
+
+        con = pg.connect(database=database, user=user, password=password, host=host, port=port)
+        cur = con.cursor()
+        QueryString = '''SELECT (payload ->>'OTP') FROM auth.nq Order by pid desc limit 1'''
+        time.sleep(3)
+        cur.execute(QueryString)
+        con.commit()
+        output1 = cur.fetchall()
+        a = str(output1)
+        b = a.replace('[(', '')
+        otp = b.replace(',)]', '')
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
+        shadow1 = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        shadow1.click()
+    #**************************************************************************************************************************
 
         # Empty text box - Invalid testcase SID 1.1
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']")
-        time.sleep(2)
-        shadow = driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.XPATH,"//input[@placeholder='Email']")
+        shadow = self.driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow.click()
-        time.sleep(2)
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").clear()
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Email']").clear()
         #***************************************************************************
 
         # Invalid mail - Invalid testcase SID 1.2
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('abc')
-        time.sleep(2)
-        shadow = driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('abc')
+        shadow = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow.click()
-        time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, ".error-message")
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").clear()
+        self.driver.find_element(By.CSS_SELECTOR, ".error-message")
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Email']").clear()
 
         #***************************************************************************
         # valid mail - valid testcase SID 1.3
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('manjunath.s@tibilsolutions.com')
-        time.sleep(2)
-        shadow = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('manjunath.s@tibilsolutions.com')
+        shadow = self.driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow.click()
-        time.sleep(2)
 
         #************************************************************************************************
         # enter the otp - Empty text box - Invalid testcase SID 1.4
-        driver.find_element(By.CSS_SELECTOR, "input[placeholder='Enter OTP']")
-        time.sleep(2)
-        shadow = driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.CSS_SELECTOR, "input[placeholder='Enter OTP']")
+        shadow = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow.click()
-        time.sleep(2)
         #****************************************************************************************************************
 
         # wrong otp - Invalid testcase SID 1.5
-        driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys('123456')
-        driver.implicitly_wait(2)
-        shadow = driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated").click()
-        time.sleep(12)
-        driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").clear()
-        time.sleep(2)
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys('123456')
+        self.driver.implicitly_wait(2)
+        shadow = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated").click()
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").clear()
 
 
         port = '5432'
@@ -82,9 +99,9 @@ class TestLogin:
 
     #  ******************************************************************************************
         # valid otp - valid testcase SID 1.6
-        driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
         time.sleep(5)
-        shadow1 = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        shadow1 = self.driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow1.click()
         time.sleep(5)
 
@@ -95,7 +112,7 @@ class TestLogin:
         else:
             print("verified")
 
-        Dashboard_display = driver.find_element(By.XPATH, "//img[@class='orgLogo ng-star-inserted']")
+        Dashboard_display = self.driver.find_element(By.XPATH, "//img[@class='orgLogo ng-star-inserted']")
 
         print("Element Found : Focus On", Dashboard_display.is_displayed())
 
@@ -107,7 +124,7 @@ class TestLogin:
         else:
             print("Element Not Found : Not verified", Dashboard_display.is_displayed())
 
-        driver.close()
+        self.driver.close()
 
 
 

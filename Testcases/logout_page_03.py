@@ -1,4 +1,7 @@
+from telnetlib import EC
+
 import psycopg2 as pg
+import pytest
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -8,25 +11,20 @@ from selenium.webdriver.common.by import By
 import time
 
 
+from selenium.webdriver.support.wait import WebDriverWait
+from PageObjes.dyno_pom import Loginpage
+
 class TestLogin:
 
     def test_Login(self):
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option("detach", True)
-        serv_obj = Service("E:\Company Software\Chrome  Webdriver - 110 version\chromedriver.exe")
-        driver = webdriver.Chrome(options=options, service=serv_obj)
-        driver.get("https://d.dynoapp.in/#/login/login")
-        driver.maximize_window()
-        time.sleep(2)
-        # ***************************************************************************
+        path= Loginpage(self)
+        self.driver = path.get_driver()
+        self.driver.implicitly_wait(30)
 
-
-        # valid mail - valid testcase
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('manjunath.s@tibilsolutions.com')
-        time.sleep(5)
-        shadow = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.get(Loginpage.URL)
+        self.driver.find_element(By.XPATH, Loginpage.textbox_mailid_xpath).send_keys(Loginpage.email)
+        shadow = self.driver.find_element(By.CSS_SELECTOR, Loginpage.next)
         shadow.click()
-        time.sleep(5)
 
         port = '5432'
         host = '34.100.216.73'
@@ -36,31 +34,35 @@ class TestLogin:
 
         con = pg.connect(database=database, user=user, password=password, host=host, port=port)
         cur = con.cursor()
-        QueryString = '''SELECT (payload ->>'OTP') :: integer FROM auth.nq Order by pid desc limit 1'''
+        QueryString = '''SELECT (payload ->>'OTP') FROM auth.nq Order by pid desc limit 1'''
+        time.sleep(3)
         cur.execute(QueryString)
         con.commit()
         output1 = cur.fetchall()
         a = str(output1)
         b = a.replace('[(', '')
         otp = b.replace(',)]', '')
-
-    #  ******************************************************************************************
-        # valid otp - valid testcase
-        driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
-        time.sleep(5)
-        shadow1 = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
+        shadow1 = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow1.click()
+        #  ******************************************************************************************
+        # valid otp - valid testcase
+
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
         time.sleep(5)
+        shadow1 = self.driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        shadow1.click()
+
 
     # logout
 
-        driver.find_element(By.CSS_SELECTOR, ".avatar").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".avatar").click()
         time.sleep(5)
-        driver.find_element(By.XPATH, "/html[1]/body[1]/div[2]/div[2]/div[1]/div[1]/div[1]/button[2]/div[1]").click()
+        self.driver.find_element(By.XPATH, "/html[1]/body[1]/div[2]/div[2]/div[1]/div[1]/div[1]/button[2]/div[1]").click()
         time.sleep(2)
 
         # validations
-        logout_page = driver.find_element(By.CSS_SELECTOR, "input[placeholder='Email']")
+        logout_page = self.driver.find_element(By.CSS_SELECTOR, "input[placeholder='Email']")
         print("Element Found : Focus On", logout_page.is_displayed())
         print("Logout page verified:")
         time.sleep(5)
@@ -69,7 +71,7 @@ class TestLogin:
         else:
             print("Element Not Found : Not verified", logout_page.is_displayed())
 
-        driver.close()
+        self.driver.close()
 
 
 

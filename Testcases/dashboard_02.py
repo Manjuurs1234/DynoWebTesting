@@ -1,4 +1,7 @@
+from telnetlib import EC
+
 import psycopg2 as pg
+import pytest
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -8,22 +11,20 @@ from selenium.webdriver.common.by import By
 import time
 
 
+from selenium.webdriver.support.wait import WebDriverWait
 
+from PageObjes.dyno_pom import Loginpage
 class TestLogin:
 
     def test_Login(self):
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option("detach", True)
-        serv_obj = Service("E:\Company Software\Chrome  Webdriver - 110 version\chromedriver.exe")
-        driver = webdriver.Chrome(options=options, service=serv_obj)
-        driver.get("https://d.dynoapp.in/#/login/login")
-        driver.maximize_window()
-        time.sleep(2)
-        driver.find_element(By.XPATH, "//input[@placeholder='Email']").send_keys('manjunath.s@tibilsolutions.com')
-        time.sleep(5)
-        shadow = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        path= Loginpage(self)
+        self.driver = path.get_driver()
+        self.driver.implicitly_wait(30)
+
+        self.driver.get(Loginpage.URL)
+        self.driver.find_element(By.XPATH, Loginpage.textbox_mailid_xpath).send_keys(Loginpage.email)
+        shadow = self.driver.find_element(By.CSS_SELECTOR, Loginpage.next)
         shadow.click()
-        time.sleep(5)
 
         port = '5432'
         host = '34.100.216.73'
@@ -33,56 +34,44 @@ class TestLogin:
 
         con = pg.connect(database=database, user=user, password=password, host=host, port=port)
         cur = con.cursor()
-        QueryString = '''SELECT (payload ->>'OTP') :: integer FROM auth.nq Order by pid desc limit 1'''
+        QueryString = '''SELECT (payload ->>'OTP') FROM auth.nq Order by pid desc limit 1'''
+        time.sleep(3)
         cur.execute(QueryString)
         con.commit()
         output1 = cur.fetchall()
         a = str(output1)
         b = a.replace('[(', '')
         otp = b.replace(',)]', '')
-        driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
-        time.sleep(5)
-        shadow1 = driver.find_element(By.CSS_SELECTOR, ".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Enter OTP']").send_keys(otp)
+        shadow1 = self.driver.find_element(By.CSS_SELECTOR,".next-btn.md.button.button-solid.ion-activatable.ion-focusable.hydrated")
         shadow1.click()
-        time.sleep(5)
+    #**************************************************************************************************************************
         # dashboard screen SID 2.1
-        driver.find_element(By.XPATH, "//img[@class='avatar']")
-        time.sleep(5)
+        self.driver.find_element(By.XPATH, "//img[@class='avatar']")
         # Grid view displayed
-        driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(4) > div:nth-child(1) > ion-item:nth-child(1) > img:nth-child(1)").is_displayed()
-        time.sleep(2)
+        self.driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(4) > div:nth-child(1) > ion-item:nth-child(1) > img:nth-child(1)").is_displayed()
 
         # list view click
-        driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(4) > div:nth-child(1) > ion-item:nth-child(2) > img:nth-child(1)").click()
-        time.sleep(2)
+        self.driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(4) > div:nth-child(1) > ion-item:nth-child(2) > img:nth-child(1)").click()
         # search project card
-        driver.find_element(By.XPATH, "//input[@placeholder='Search Apps']").send_keys('Artistpass') # search name
-        time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > div:nth-child(3) > ion-card:nth-child(1) > ion-item:nth-child(1) > img:nth-child(3)").click() # 3 dots
-        time.sleep(2)
+        self.driver.find_element(By.XPATH, "//input[@placeholder='Search Apps']").send_keys('Artistpass') # search name
+        self.driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > div:nth-child(3) > ion-card:nth-child(1) > ion-item:nth-child(1) > img:nth-child(3)").click() # 3 dots
         # view specifications
-        driver.find_element(By.ID,"logout-id").click()
-        time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-landing:nth-child(3) > ion-header:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > img:nth-child(1)").click() # back button
-        time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > div:nth-child(3) > ion-card:nth-child(1) > ion-item:nth-child(1) > img:nth-child(3)").click() #3 dots
-        time.sleep(2)
+        self.driver.find_element(By.ID,"logout-id").click()
+        self.driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-landing:nth-child(3) > ion-header:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > img:nth-child(1)").click() # back button
+        self.driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > div:nth-child(3) > ion-card:nth-child(1) > ion-item:nth-child(1) > img:nth-child(3)").click() #3 dots
         # open application
-        driver.find_element(By.ID,"logout-id").click()
-        time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-landing:nth-child(3) > ion-header:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > img:nth-child(1)").click()  # back button
-        time.sleep(2)
+        self.driver.find_element(By.ID,"logout-id").click()
+        self.driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-landing:nth-child(3) > ion-header:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > img:nth-child(1)").click()  # back button
         # Case studies screen
-        driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > mat-tab-group:nth-child(1) > mat-tab-header:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span:nth-child(2)").click()
-        driver.find_element(By.CSS_SELECTOR,".font-size")
-        time.sleep(5)
+        self.driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > mat-tab-group:nth-child(1) > mat-tab-header:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span:nth-child(2)").click()
+        self.driver.find_element(By.CSS_SELECTOR,".font-size")
         # presentation screen
-        driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > mat-tab-group:nth-child(1) > mat-tab-header:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > span:nth-child(2)").click()
-        driver.find_element(By.CSS_SELECTOR,".font-size")
-        time.sleep(2)
+        self.driver.find_element(By.CSS_SELECTOR, "body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(1) > mat-tab-group:nth-child(1) > mat-tab-header:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > span:nth-child(2)").click()
+        self.driver.find_element(By.CSS_SELECTOR,".font-size")
 
         # validations
-        Dashboard_display = driver.find_element(By.XPATH, "//img[@class='orgLogo ng-star-inserted']")
+        Dashboard_display = self.driver.find_element(By.XPATH, "//img[@class='orgLogo ng-star-inserted']")
         print("Element Found : Focus On", Dashboard_display.is_displayed())
         print("Dashboard page verified:")
         print("Grid view displayed:")
@@ -99,7 +88,7 @@ class TestLogin:
         else:
             print("Element Not Found : Not verified", Dashboard_display.is_displayed())
 
-        driver.close()
+        self.driver.close()
 
 
 

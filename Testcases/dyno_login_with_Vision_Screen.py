@@ -48,24 +48,25 @@ class TestLogin:
         driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > ion-toolbar:nth-child(1) > ion-grid:nth-child(1) > ion-row:nth-child(1) > ion-col:nth-child(4) > div:nth-child(1) > ion-item:nth-child(2) > img:nth-child(1)").click()
         time.sleep(2)
         # search project card
-        driver.find_element(By.XPATH, "//input[@placeholder='Search Apps']").send_keys('Dyno')  # search name
+        driver.find_element(By.XPATH, "//input[@placeholder='Search Apps']").send_keys('BFSI')  # search name
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR,"body > app-root:nth-child(1) > ion-app:nth-child(1) > ion-router-outlet:nth-child(1) > app-home:nth-child(2) > ion-content:nth-child(3) > div:nth-child(1) > div:nth-child(3) > ion-card:nth-child(1) > ion-item:nth-child(1) > img:nth-child(3)").click()  # 3 dots
         time.sleep(2)
         # view specifications
         driver.find_element(By.ID, "logout-id").click()
         time.sleep(2)
+        #******************************************************************************************************************
 
         # Screen Name: Vision Screen
         # SID: 2.1 - Verify UI elements of Vision Screen
 
         # User clicks on Vision link in left pane
-        driver.find_element(By.XPATH, "//div[@class='mat-tooltip-trigger label-span'][normalize-space()='+Vision979']").click()
+        driver.find_element(By.XPATH, "//li[6]//ion-row[1]//ion-col[3]").click()
         time.sleep(2)
        # Displaying user navigation in top menu and Title indicating the vision number
         driver.find_element(By.CSS_SELECTOR, ".bread-crumb-col.md.hydrated")
         time.sleep(2)
-        # see the Document status drop down
+        # # see the Document status drop down
         driver.find_element(By.CSS_SELECTOR, "img[src='../../../../assets/icon/pencil.png']").click() # click the edit button
         time.sleep(2)
         driver.find_element(By.XPATH, '//*[@id="mat-select-0"]/div/div[2]').click()  # click the dropdown
@@ -96,6 +97,24 @@ class TestLogin:
         # Footer menu information
         driver.find_element(By.XPATH, "//div[@class='footerClass']")
         time.sleep(2)
+        #*******************************************************************************************************
+
+        # SID 2.2 - Edit Vision Details
+        # Edit icon
+        driver.find_element(By.CSS_SELECTOR, "img[src='../../../../assets/icon/pencil.png']").click()
+        time.sleep(2)
+        # see the textbox to enter the modification Title and Description
+        driver.find_element(By.CSS_SELECTOR, "input[placeholder='Please enter a title here']").clear()
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR, "input[placeholder='Please enter a title here']").send_keys("+VSN NO509")
+        time.sleep(3)
+        #***********************************************************************************************************
+        driver.find_element(By.CSS_SELECTOR, "input[placeholder='Please enter a title here']").clear()
+        driver.find_element(By.CSS_SELECTOR, "img[src='assets/icon/save-blue.png']").click()
+        time.sleep(5)
+
+
+
 
         # validations
         Dashboard_display = driver.find_element(By.CSS_SELECTOR, ".visionTitle")
@@ -109,7 +128,7 @@ class TestLogin:
         print("More options button was verified:")
         print("The Title and Description was verified:")
         print("Footer menu information was verified:")
-
+        print("Edit Vision Details was verified:")
         time.sleep(2)
         if Dashboard_display.is_displayed() == True:
             assert True
